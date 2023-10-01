@@ -28,9 +28,10 @@ To get started with Nox, follow these steps:
    ```
 
 3. **Configuration:**
-   - Create a Supabase project and set up your database.
-   - Create a `.env` and configure your Supabase credentials in the `.env` file as API (api endpoint) and APIKEY (api key).
-   - If you're unsure how to do it, you can use `.env.template` file as a template for your `.env` file
+   - Create a Supabase project and set up your database. Create two tables, "webhooks" and "messages".
+   - Disable RLS for all tables (Will be updated soon) (insecure).
+   - Create a `.env` and configure your Supabase credentials in the `.env` file.
+   - If you're not sure how to do it, you can use `.env.template` file as a template for your `.env` file
 
 4. **Run the Application:**
 
@@ -56,5 +57,3 @@ Nox is licensed under the [GPL v3](LICENSE).
 Nope.
 
 Thanks for using Nox!
-
----
