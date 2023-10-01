@@ -118,10 +118,17 @@ app.get("/api/messages", async (req, res) => {
 	if (result.error !== null) {
 		error = result.error.message;
 	}
-	res.json({
-		data: null || result.data.messages,
-		error: error,
-	});
+	if (result.data === null) {
+		res.send({
+			data: null,
+			error: "Error fetching messages. Does the webhook exist?",
+		});
+	} else {
+		res.send({
+			data: result.data.messages,
+			error: error,
+		});
+	}
 });
 app.get("/api/message", async (req, res) => {
 	if (req.body.authorization == undefined) {
@@ -206,7 +213,7 @@ app.post("/api/message", async (req, res) => {
 	if (fetchErrorMsg) {
 		res.status(500);
 		res.json({
-			error: "Error setting message data: " + fetchErrorMsg,
+			error: "Error setting message data: " + fetchErrorMsg.message,
 		});
 		return;
 	}
@@ -218,7 +225,7 @@ app.post("/api/message", async (req, res) => {
 	if (fetchErrorHook) {
 		res.status(500);
 		res.json({
-			error: "Error fetching existing data: " + fetchErrorHook,
+			error: "Error fetching existing data: " + fetchErrorHook.message,
 		});
 		return;
 	}
