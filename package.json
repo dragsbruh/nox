@@ -1,6 +1,6 @@
 {
 	"name": "nox",
-	"version": "1.0.1",
+	"version": "1.1.0",
 	"description": "A webhook-as-a-service with a chat experience",
 	"main": "dist/index.js",
 	"type": "module",

@@ -1,8 +1,10 @@
 # Nox - Webhook-as-a-Service with a Chat Experience
 
-v1.0.1
+v1.1.0
 
 Nox is an open-source project designed to provide a webhook-as-a-service with a chat experience similar to Discord. It is licensed under the GPL v3, offering a free and open platform for contributions from the community. Nox is built using Node.js and Express and utilizes Supabase for its backend. It's designed to be an out-of-the-box solution for webhook management and communication.
+
+PLEASE NOTE: This is currently highly insecure because you can delete the entire webhook with auth key which is required for every interaction that includes updates and inserts.
 
 ## Features
 

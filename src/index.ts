@@ -60,6 +60,11 @@ const wss = new WebSocketServer({ server: server });
 
 app.use(parser.json());
 
+const validUUIDv4 = (str) =>
+	/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89aAbB][\da-f]{3}-[\da-f]{12}$/.test(
+		str
+	);
+
 app.post("/api/create", async (req, res) => {
 	if (req.body.authorization == undefined) {
 		res.status(401);
@@ -88,7 +93,7 @@ app.post("/api/create", async (req, res) => {
 		hook: data.id,
 	});
 });
-app.get("/api/messages", async (req, res) => {
+app.post("/api/delete", async (req, res) => {
 	if (req.body.authorization == undefined) {
 		res.status(401);
 		res.json({
@@ -106,6 +111,34 @@ app.get("/api/messages", async (req, res) => {
 		res.status(400);
 		res.json({
 			error: "Please provide hook ID",
+		});
+		return;
+	}
+	if (!validUUIDv4(req.body.id)) {
+		res.status(400);
+		res.json({
+			error: "Improper hook ID",
+		});
+		return;
+	}
+
+	let error = await client.from("webhooks").delete().eq("id", req.body.id);
+	res.json({
+		error: null, // TODO: this
+	});
+});
+app.get("/api/messages", async (req, res) => {
+	if (req.body.id == undefined) {
+		res.status(400);
+		res.json({
+			error: "Please provide hook ID",
+		});
+		return;
+	}
+	if (!validUUIDv4(req.body.id)) {
+		res.status(400);
+		res.json({
+			error: "Improper hook ID",
 		});
 		return;
 	}
@@ -131,19 +164,6 @@ app.get("/api/messages", async (req, res) => {
 	}
 });
 app.get("/api/message", async (req, res) => {
-	if (req.body.authorization == undefined) {
-		res.status(401);
-		res.json({
-			error: "Please provide authorization token",
-		});
-		return;
-	} else if (req.body.authorization !== process.env.SECRET_KEY) {
-		res.status(401);
-		res.json({
-			error: "Invalid authorization token",
-		});
-		return;
-	}
 	if (req.body.id == undefined) {
 		res.status(400);
 		res.json({
@@ -197,6 +217,13 @@ app.post("/api/message", async (req, res) => {
 		res.status(400);
 		res.json({
 			error: "Please provide an author name to send",
+		});
+		return;
+	}
+	if (!validUUIDv4(req.body.id)) {
+		res.status(400);
+		res.json({
+			error: "Improper hook ID",
 		});
 		return;
 	}
@@ -255,11 +282,6 @@ app.post("/api/message", async (req, res) => {
 
 	res.json({ data: data, error: null });
 });
-
-const validUUIDv4 = (str) =>
-	/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89aAbB][\da-f]{3}-[\da-f]{12}$/.test(
-		str
-	);
 
 wss.on("connection", (ws) => {
 	const identifier = uuidv4();
