@@ -16,13 +16,13 @@ To get started with Nox, follow these steps:
 
 1. **Clone the Repository:**
 
-   ```
+   ```cmd
    git clone https://github.com/dragsbruh/nox.git
    ```
 
 2. **Install Dependencies:**
 
-   ```
+   ```cmd
    cd nox
    npm install
    ```
@@ -34,7 +34,7 @@ To get started with Nox, follow these steps:
 
 4. **Run the Application:**
 
-   ```
+   ```cmd
    npm start
    ```
 
