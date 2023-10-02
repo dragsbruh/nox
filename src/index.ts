@@ -127,6 +127,66 @@ app.post("/api/delete", async (req, res) => {
 		error: null, // TODO: this
 	});
 });
+app.post("/api/clear", async (req, res) => {
+	if (req.body.authorization == undefined) {
+		res.status(401);
+		res.json({
+			error: "Please provide authorization token",
+		});
+		return;
+	} else if (req.body.authorization !== process.env.SECRET_KEY) {
+		res.status(401);
+		res.json({
+			error: "Invalid authorization token",
+		});
+		return;
+	}
+	if (req.body.id == undefined) {
+		res.status(400);
+		res.json({
+			error: "Please provide hook ID",
+		});
+		return;
+	}
+	if (!validUUIDv4(req.body.id)) {
+		res.status(400);
+		res.json({
+			error: "Improper hook ID",
+		});
+		return;
+	}
+	let result = await client
+		.from("webhooks")
+		.select("*")
+		.eq("id", req.body.id)
+		.single();
+	let error = null;
+	if (result.error !== null) {
+		error = result.error.message;
+	}
+	if (result.data === null) {
+		res.send({
+			data: null,
+			error:
+				"Error getting messages. Does the webhook exist? Hint: " +
+				error,
+		});
+		return;
+	}
+	result.data.messages.forEach(async (message) => {
+		let error = await client.from("messages").delete().eq("id", message);
+	});
+	const { error: updateError } = await client
+		.from("webhooks")
+		.update({ messages: [] })
+		.eq("id", req.body.id);
+	if (updateError) {
+		res.status(500);
+		res.json({ error: "Error clearing data: " + updateError });
+		return;
+	}
+	res.json({ error: null });
+});
 app.get("/api/messages", async (req, res) => {
 	if (req.body.id == undefined) {
 		res.status(400);
