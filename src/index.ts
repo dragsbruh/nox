@@ -60,19 +60,30 @@ const wss = new WebSocketServer({ server: server });
 
 app.use(parser.json());
 
+app.use((req, res, next) => {
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header(
+		"Access-Control-Allow-Headers",
+		"Origin, X-Requested-With, Content-Type, Accept"
+	);
+	res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+	next();
+});
+
 const validUUIDv4 = (str) =>
 	/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89aAbB][\da-f]{3}-[\da-f]{12}$/.test(
 		str
 	);
 
 app.post("/api/create", async (req, res) => {
-	if (req.body.authorization == undefined) {
+	let body = req.body;
+	if (body.authorization == undefined) {
 		res.status(401);
 		res.json({
 			error: "Please provide authorization token",
 		});
 		return;
-	} else if (req.body.authorization !== process.env.SECRET_KEY) {
+	} else if (body.authorization !== process.env.SECRET_KEY) {
 		res.status(401);
 		res.json({
 			error: "Invalid authorization token",
@@ -94,27 +105,28 @@ app.post("/api/create", async (req, res) => {
 	});
 });
 app.post("/api/delete", async (req, res) => {
-	if (req.body.authorization == undefined) {
+	let body = req.body;
+	if (body.authorization == undefined) {
 		res.status(401);
 		res.json({
 			error: "Please provide authorization token",
 		});
 		return;
-	} else if (req.body.authorization !== process.env.SECRET_KEY) {
+	} else if (body.authorization !== process.env.SECRET_KEY) {
 		res.status(401);
 		res.json({
 			error: "Invalid authorization token",
 		});
 		return;
 	}
-	if (req.body.id == undefined) {
+	if (body.id == undefined) {
 		res.status(400);
 		res.json({
 			error: "Please provide hook ID",
 		});
 		return;
 	}
-	if (!validUUIDv4(req.body.id)) {
+	if (!validUUIDv4(body.id)) {
 		res.status(400);
 		res.json({
 			error: "Improper hook ID",
@@ -122,33 +134,34 @@ app.post("/api/delete", async (req, res) => {
 		return;
 	}
 
-	let error = await client.from("webhooks").delete().eq("id", req.body.id);
+	let error = await client.from("webhooks").delete().eq("id", body.id);
 	res.json({
 		error: null, // TODO: this
 	});
 });
 app.post("/api/clear", async (req, res) => {
-	if (req.body.authorization == undefined) {
+	let body = req.body;
+	if (body.authorization == undefined) {
 		res.status(401);
 		res.json({
 			error: "Please provide authorization token",
 		});
 		return;
-	} else if (req.body.authorization !== process.env.SECRET_KEY) {
+	} else if (body.authorization !== process.env.SECRET_KEY) {
 		res.status(401);
 		res.json({
 			error: "Invalid authorization token",
 		});
 		return;
 	}
-	if (req.body.id == undefined) {
+	if (body.id == undefined) {
 		res.status(400);
 		res.json({
 			error: "Please provide hook ID",
 		});
 		return;
 	}
-	if (!validUUIDv4(req.body.id)) {
+	if (!validUUIDv4(body.id)) {
 		res.status(400);
 		res.json({
 			error: "Improper hook ID",
@@ -158,7 +171,7 @@ app.post("/api/clear", async (req, res) => {
 	let result = await client
 		.from("webhooks")
 		.select("*")
-		.eq("id", req.body.id)
+		.eq("id", body.id)
 		.single();
 	let error = null;
 	if (result.error !== null) {
@@ -179,7 +192,7 @@ app.post("/api/clear", async (req, res) => {
 	const { error: updateError } = await client
 		.from("webhooks")
 		.update({ messages: [] })
-		.eq("id", req.body.id);
+		.eq("id", body.id);
 	if (updateError) {
 		res.status(500);
 		res.json({ error: "Error clearing data: " + updateError });
@@ -188,14 +201,15 @@ app.post("/api/clear", async (req, res) => {
 	res.json({ error: null });
 });
 app.get("/api/messages", async (req, res) => {
-	if (req.body.id == undefined) {
+	let body = req.query;
+	if (body.id == undefined) {
 		res.status(400);
 		res.json({
 			error: "Please provide hook ID",
 		});
 		return;
 	}
-	if (!validUUIDv4(req.body.id)) {
+	if (!validUUIDv4(body.id)) {
 		res.status(400);
 		res.json({
 			error: "Improper hook ID",
@@ -205,7 +219,7 @@ app.get("/api/messages", async (req, res) => {
 	let result = await client
 		.from("webhooks")
 		.select("*")
-		.eq("id", req.body.id)
+		.eq("id", body.id)
 		.single();
 	let error = null;
 	if (result.error !== null) {
@@ -224,7 +238,8 @@ app.get("/api/messages", async (req, res) => {
 	}
 });
 app.get("/api/message", async (req, res) => {
-	if (req.body.id == undefined) {
+	let body = req.query;
+	if (body.id == undefined) {
 		res.status(400);
 		res.json({
 			error: "Please provide message ID",
@@ -234,7 +249,7 @@ app.get("/api/message", async (req, res) => {
 	let result = await client
 		.from("messages")
 		.select("*")
-		.eq("id", req.body.id)
+		.eq("id", body.id)
 		.single();
 	let error = null;
 	if (result.error !== null) {
@@ -246,41 +261,42 @@ app.get("/api/message", async (req, res) => {
 	});
 });
 app.post("/api/message", async (req, res) => {
-	if (req.body.authorization == undefined) {
+	let body = req.body;
+	if (body.authorization == undefined) {
 		res.status(401);
 		res.json({
 			error: "Please provide authorization token",
 		});
 		return;
-	} else if (req.body.authorization !== process.env.SECRET_KEY) {
+	} else if (body.authorization !== process.env.SECRET_KEY) {
 		res.status(401);
 		res.json({
 			error: "Invalid authorization token",
 		});
 		return;
 	}
-	if (req.body.id == undefined) {
+	if (body.id == undefined) {
 		res.status(400);
 		res.json({
 			error: "Please provide hook ID",
 		});
 		return;
 	}
-	if (req.body.content == undefined) {
+	if (body.content == undefined) {
 		res.status(400);
 		res.json({
 			error: "Please provide content to send",
 		});
 		return;
 	}
-	if (req.body.author == undefined) {
+	if (body.author == undefined) {
 		res.status(400);
 		res.json({
 			error: "Please provide an author name to send",
 		});
 		return;
 	}
-	if (!validUUIDv4(req.body.id)) {
+	if (!validUUIDv4(body.id)) {
 		res.status(400);
 		res.json({
 			error: "Improper hook ID",
@@ -307,7 +323,7 @@ app.post("/api/message", async (req, res) => {
 	const { data: existingData, error: fetchErrorHook } = await client
 		.from("webhooks")
 		.select("messages")
-		.eq("id", req.body.id)
+		.eq("id", body.id)
 		.single();
 	if (fetchErrorHook) {
 		res.status(500);
@@ -323,7 +339,7 @@ app.post("/api/message", async (req, res) => {
 	const { data: updatedData, error: updateError } = await client
 		.from("webhooks")
 		.update({ messages: messagesArray })
-		.eq("id", req.body.id);
+		.eq("id", body.id);
 	if (updateError) {
 		res.status(500);
 		res.json({ error: "Error updating data: " + updateError });
